@@ -1,0 +1,270 @@
+[
+  {
+    "updatedAt": "2026-10-25T15:34:46.874Z",
+    "createdAt": "2026-10-25T13:46:03.915Z",
+    "id": "GDVXxuFPdKMmKtf5",
+    "name": "RSS Summarizer",
+    "description": null,
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "a1b2c3d4-0001-4000-8000-000000000001",
+        "name": "When clicking 'Execute workflow'",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          240,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://feeds.bbci.co.uk/news/technology/rss.xml",
+          "options": {}
+        },
+        "id": "a1b2c3d4-0002-4000-8000-000000000002",
+        "name": "RSS Read",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1.1,
+        "position": [
+          464,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "maxItems": 5
+        },
+        "id": "a1b2c3d4-0003-4000-8000-000000000003",
+        "name": "Limit",
+        "type": "n8n-nodes-base.limit",
+        "typeVersion": 1,
+        "position": [
+          688,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Summarize this article in 2 plain-English sentences.\nTitle: {{ $json.title }}\nContent: {{ $json.contentSnippet }}"
+        },
+        "id": "a1b2c3d4-0004-4000-8000-000000000004",
+        "name": "Basic LLM Chain",
+        "type": "@n8n/n8n-nodes-langchain.chainLlm",
+        "typeVersion": 1.5,
+        "position": [
+          912,
+          304
+        ],
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000,
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "model": "openrouter/free",
+          "options": {}
+        },
+        "id": "a1b2c3d4-0005-4000-8000-000000000005",
+        "name": "OpenRouter Chat Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+        "typeVersion": 1,
+        "position": [
+          912,
+          512
+        ],
+        "credentials": {
+          "openRouterApi": {
+            "id": "w9CppvCANF0gzCa9",
+            "name": "OpenRouter account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "11R8gyz4SsodPHOcJDx1cnHomYN2GjqeU61AuGKisKVY",
+            "mode": "list",
+            "cachedResultName": "RSS Summaries",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11R8gyz4SsodPHOcJDx1cnHomYN2GjqeU61AuGKisKVY/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1719581230,
+            "mode": "list",
+            "cachedResultName": "Untitled",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11R8gyz4SsodPHOcJDx1cnHomYN2GjqeU61AuGKisKVY/edit#gid=1719581230"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Title": "={{ $('RSS Read').item.json.title }}",
+              "Link": "={{ $('RSS Read').item.json.link }}",
+              "Published": "={{ $('RSS Read').item.json.pubDate }}",
+              "Summary": "={{ $json.text }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "Title",
+                "displayName": "Title",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Link",
+                "displayName": "Link",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Published",
+                "displayName": "Published",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Summary",
+                "displayName": "Summary",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "a1b2c3d4-0006-4000-8000-000000000006",
+        "name": "Google Sheets",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          1152,
+          304
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "RBYGPPbGeX18sgOd",
+            "name": "Google Sheets account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "When clicking 'Execute workflow'": {
+        "main": [
+          [
+            {
+              "node": "RSS Read",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS Read": {
+        "main": [
+          [
+            {
+              "node": "Limit",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Limit": {
+        "main": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenRouter Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Basic LLM Chain": {
+        "main": [
+          [
+            {
+              "node": "Google Sheets",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "727dbf50-4cbf-458a-9dad-4c8d9059f47e",
+    "activeVersionId": null,
+    "versionCounter": 19,
+    "triggerCount": 0,
+    "sourceWorkflowId": null,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-10-25T13:46:03.916Z",
+        "createdAt": "2026-10-25T13:46:03.916Z",
+        "role": "workflow:owner",
+        "workflowId": "GDVXxuFPdKMmKtf5",
+        "projectId": "PNbjQwdoucNbMNP1",
+        "project": {
+          "updatedAt": "2026-10-25T13:50:07.896Z",
+          "createdAt": "2026-10-25T13:36:32.730Z",
+          "id": "PNbjQwdoucNbMNP1",
+          "name": "Aman Gupta <amangupta@local.dev>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "customTelemetryTags": [],
+          "creatorId": "37ec610e-50ad-427d-b2ff-bb12ac93a695"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]
